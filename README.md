@@ -81,8 +81,8 @@ This system is designed for **retail stores and supermarkets** to:
 ## 📥 Clone the Repository
 
 ```bash
-git clone https://github.com/matijariaudo/anyone_object_detection
 cd your-repo
+git clone https://github.com/matijariaudo/anyone_object_detection . #Important! "." open de project inside your repo
 ```
 
 ---
