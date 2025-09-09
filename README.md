@@ -78,11 +78,65 @@ This system is designed for **retail stores and supermarkets** to:
 
 ---
 
-## 🤝 Contributing  
+## 📥 Clone the Repository
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.  
+```bash
+git clone https://github.com/matijariaudo/anyone_object_detection
+cd your-repo
+```
 
 ---
+
+## 🔑 Contribution Rules
+
+To keep the workflow clean and consistent:
+
+1. Always switch to the **main** branch:
+   ```bash
+   git checkout main
+   ```
+
+2. Update your local **main**:
+   ```bash
+   git pull origin main
+   ```
+
+3. Create a new branch for your feature or fix:
+   ```bash
+   git checkout -b feature/my-new-feature
+   ```
+
+4. Make your changes, then commit and push:
+   ```bash
+   git add .
+   git commit -m "Add my new feature"
+   git push origin feature/my-new-feature
+   ```
+
+5. Open a **Pull Request (PR)** on GitHub from your branch → `main`.
+
+✅ Example:
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b fix/login-bug
+# make changes...
+git add .
+git commit -m "Fix login bug with session"
+git push origin fix/login-bug
+```
+
+Then go to GitHub and create the PR.
+
+---
+
+## 📂 Backend Guidelines
+
+For backend setup and API details, go to:
+
+➡️ [app/backend/README.md](app/backend/README.md)
+
 
 ## 📜 License  
 
