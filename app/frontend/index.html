@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detección de Huecos</title>
+  <title>Gap detection</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body{
@@ -27,6 +27,12 @@
     .video-wrap { position: relative; display:inline-block;margin-top: 20px; }
     #video { width: 100%; border: 2px solid #FFF; border-radius: 10px; transform:scaleX(-1);}
     #overlay { position:absolute; top:0; left:0; }
+    select,input{
+      color:#FFF;border:1px solid #fff;background-color: rgb(255,255,255,.2);border-radius:100px;padding:5px;padding-left:10px
+    }
+    input::placeholder{
+      color:#f1f1f1
+    }
   </style>
 </head>
 <body class="p-3">
@@ -37,23 +43,69 @@
     <p class="mt-2">Cargando...</p>
   </div>
 
-  <!-- Capa 1: Menú -->
+  <!-- Capa 10: Login -->
   <div id="capa_10" class="capa text-center">
     <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
-    <div class="col-12 col-md-4 offset-md-4">
-    Usuario:
-    <input type="text" class="w-100" value="mati_ariaudo" style="color:#FFF;border:1px solid #fff;background-color: rgb(255, 255, 255,.2);border-radius: 100px;padding:5px;padding-left: 10px"><br>
-    Clave: <input type="password" class="w-100" value="123455" style="color:#FFF;border:1px solid #fff;background-color: rgb(255, 255, 255,.2);border-radius: 100px;padding:5px;padding-left: 10px;"><br>
-    <button class="btn btn-claro mt-3 w-100" onclick="capa(1)" style="background-color: #FFF;color:#a93ca2;">Iniciar sesión</button>
+    <h5>Login</h5>
+    <div class="col-12 col-md-4 offset-md-4" >
+      <input id="user_email_form" type="text" class="w-100 mb-2" placeholder="User"><br>
+      <input id="user_password_form" type="password" class="w-100 mb-2" placeholder="Password"
+        style="color:#FFF;border:1px solid #fff;background-color: rgb(255,255,255,.2);border-radius:100px;padding:5px;padding-left:10px;"><br>
+      <button class="btn btn-claro w-100 mb-2" onclick="loginUser()" style="background-color: #FFF;color:#a93ca2;">
+        LogIn
+      </button>
+      <div id="error_login" class=" mb-2" style="color: #e8b6e5;"></div>
+      <ss style="color: #f28beb;">Are you new?</ss><a onclick="capa(11)" style="cursor: pointer">
+        Create an account
+      </a>
     </div>
   </div>
 
-  <!-- Capa 1: Menú -->
+  <!-- Capa 11: Crear usuario -->
+  <div id="capa_11" class="capa text-center">
+    <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
+    <h5>Create new account</h5>
+    <div class="col-12 col-md-4 offset-md-4">
+      <input id="new_email" type="text" placeholder="Email" class="w-100 mb-2">
+      <input id="new_password" type="password" placeholder="Password" class="w-100 mb-2">
+      <input id="repeat_password" type="password" placeholder="Repeat Password" class="w-100 mb-2">
+      <button class="btn btn-claro w-100" onclick="createUser()" style="background-color: #FFF;color:#a93ca2;margin-bottom: 20px;">Create an account</button>
+      <div id="error_create" class=" mb-2" style="color: #e8b6e5;"></div>
+      <a onclick="capa(10)" style="cursor: pointer">
+        Go back
+      </a>
+    </div>
+  </div>
+
+  <!-- Capa 12: Usuario creado -->
+  <div id="capa_12" class="capa text-center">
+    <h1>✅ Usuario creado con éxito</h1>
+    <button class="btn btn-claro mt-3" onclick="capa(10)">Ir a Login</button>
+  </div>
+
+  <!-- Capa 1: Lista de cámaras -->
   <div id="capa_1" class="capa text-center">
     <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
+    <button class="btn btn-claro mt-2" onclick="capa(2)" style="background-color: #FFF;color:#a93ca2;margin-bottom: 20px;">🎥 Add new camera</button>
+    <button class="btn btn-claro mt-2" onclick="capa(100)" style="background-color: #FFF;color:#a93ca2;margin-bottom: 20px;">📷 Upload & Detect</button>
+    <button class="btn btn-claro mt-2" onclick="localStorage.removeItem('user');capa(10)" style="background-color:#FFF;color:#a93ca2;margin-bottom:20px;">🔚 LogOut</button>
     <div class="col-12 col-md-4 offset-md-4">
-    <button class="btn btn-claro m-2" onclick="capa(100)">📷 Upload & Detect</button>
-    <button class="btn btn-claro m-2" onclick="capa(200)">🎥 Real-Time Scan</button>
+      <ul id="camera_list" class="list-unstyled mt-3"></ul>
+    </div>
+  </div>
+
+  <!-- Capa 2: Crear cámara -->
+  <div id="capa_2" class="capa text-center">
+    <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
+    <h4>🎥 Add new camera</h4>
+    <div class="col-12 col-md-4 offset-md-4">
+      <input id="new_camera_name" type="text" placeholder="Nombre cámara" class="mb-2 w-100">
+      <select id="available_devices" class="mb-2 w-100"></select>
+      <div id="error_camera" class="text-danger mb-2"></div>
+      <button class="btn btn-claro w-100 mb-2" onclick="createCamera()" style="background-color: #FFF;color:#a93ca2;margin-bottom: 20px;">Guardar</button>
+      <a onclick="capa(1)" style="cursor: pointer">
+        Go back
+      </a>
     </div>
   </div>
 
@@ -86,6 +138,7 @@
         <canvas id="overlay" style="border:3px solid #FFF"></canvas>
       </div>
       <canvas id="canvas" style="display:none;"></canvas>
+      <p id="statusBox" style="text-align: center;"></p>
     </div>
   </div>
 
@@ -94,7 +147,7 @@
     document.querySelectorAll('.capa').forEach(c => c.classList.remove('active'))
     document.getElementById('capa_' + i).classList.add('active')
   }
-  setTimeout(() => capa(10), 200)
+  //setTimeout(() => capa(10), 200)
 
   const video = document.getElementById('video')
   const overlay = document.getElementById('overlay')
@@ -149,7 +202,8 @@
         // limpiar overlay
         ctxOverlay.clearRect(0,0,overlay.width, overlay.height)
 
-        if (json.result) {
+        // pintar boxes solo si status = success
+        if (json.status === "success" && json.result) {
           json.result.forEach(([x1,y1,x2,y2]) => {
           let px1 = x1 * overlay.width
           let px2 = x2 * overlay.width
@@ -167,6 +221,27 @@
           ctxOverlay.strokeRect(px1, py1, px2 - px1, py2 - py1)
           })
         }
+
+        // mostrar estado abajo del video
+        const statusBox = document.getElementById("statusBox")
+        if (statusBox) {
+          switch (json.status) {
+            case "success":
+              statusBox.textContent = "Cambio"
+              break
+            case "no changes":
+              statusBox.textContent = "Sin cambio"
+              break
+            case "No results":
+              statusBox.textContent = "Sin resultado"
+              break
+            case "error":
+              statusBox.textContent = "Error"
+              break
+            default:
+              statusBox.textContent = "Desconocido"
+          }
+        }
       } catch (err) {
         console.error(err)
       }
@@ -177,7 +252,7 @@
   function capturar(){ interval = setInterval(enviarFrame, 1000) }
   function finCapturar(){ clearInterval(interval) }
 
-  document.querySelector('button[onclick="capa(200)"]').addEventListener('click', iniciarCamara)
+  //document.querySelector('button[onclick="capa(200)"]').addEventListener('click', iniciarCamara)
 
   function procesarImagen() {
     const file = document.getElementById('fileInput').files[0]
@@ -224,6 +299,217 @@
     }
     reader.readAsDataURL(file)
   }
+
+  // Al cargar, chequear si ya hay usuario guardado
+  window.onload = () => {
+    const user = localStorage.getItem("user")
+    if (user) {
+      getCameras()
+      capa(1)
+      console.log("Registered User")
+    } else {
+      capa(10)
+      console.log("Unregistered User")
+    }
+  }
+
+  async function loginUser() {
+    capa(0) // loading
+    const email = document.getElementById("user_email_form").value
+    const password = document.getElementById("user_password_form").value
+    const errorBoxLogin = document.getElementById("error_login")
+    if (email.length<5) {
+        errorBoxLogin.innerText = "You must enter a valid email"
+        capa(10)
+        return
+    }
+    if (password.length<6) {
+        errorBoxLogin.innerText = "You must enter a valid password"
+        capa(10)
+        return
+    }
+    try {
+      const res = await fetch("http://localhost:9000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      })
+      const json = await res.json()
+      if (json.status === 200) {
+        // simular objeto user (id_user debería venir del backend)
+        localStorage.setItem("user", JSON.stringify({ email, id_user: json.id_user || 1 }))
+        capa(1)
+        getCameras()
+      } else {
+        errorBoxLogin.innerText=json.msg || "Login error"
+        capa(10)
+      } 
+    } catch (err) {
+      console.error(err)
+      capa(10)
+    }
+  }
+
+  async function createUser() {
+    capa(0) // loading
+    const email = document.getElementById("new_email").value
+    const password = document.getElementById("new_password").value
+    const repeat = document.getElementById("repeat_password").value
+    const errorBox = document.getElementById("error_create")
+    if (email.length<5) {
+      errorBox.innerText = "You must enter a valid email"
+      capa(11)
+      return
+    }
+    if (password.length<6) {
+      errorBox.innerText = "Passwords must have at least 6 characters"
+      capa(11)
+      return
+    }
+    if (password !== repeat) {
+      errorBox.innerText = "Passwords must be equals"
+      capa(11)
+      return
+    }
+
+    try {
+      const res = await fetch("http://localhost:9000/create_account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name: email })
+      })
+      const json = await res.json()
+      if (json.status === 200) {
+        capa(12)
+      } else {
+        errorBox.innerText = json.msg || "Error al crear usuario"
+        capa(11)
+      }
+    } catch (err) {
+      console.error(err)
+      errorBox.innerText = "Error de conexión"
+      capa(11)
+    }
+  }
+  async function getCameras() {
+    const user = JSON.parse(localStorage.getItem("user"))
+    if (!user) { capa(10); return }
+
+    try {
+      const res = await fetch("http://localhost:9000/get_cameras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id_user })
+      })
+      const json = await res.json()
+
+      const list = document.getElementById("camera_list")
+      list.innerHTML = ""
+
+      if (json.status === 200 && json.cameras.length > 0) {
+        json.cameras.forEach(c => {
+          const li = document.createElement("li")
+          li.className = "p-3 my-2"
+          li.style.background = "rgba(255,255,255,.2)"
+          li.style.borderRadius = "10px"
+          li.style.color = "#FFF"
+          li.innerHTML = `
+            <b> ${c[1]} || Camera Id:${c[0]}</b><br>
+            <button class="btn btn-claro btn-sm mt-2" onclick="startScan(${c[0]})" style="background:#FFF;border:2px solid #e8b6e5"">💾</button>
+            <button class="btn btn-claro btn-sm mt-2" onclick="startScan(${c[0]})" style="background:#FFF;border:2px solid #e8b6e5"">🎥</button>
+            <button class="btn btn-claro btn-sm mt-2" onclick="deleteCamera(${c[0]})" style="background:#FFF;margin-left:30px;border:2px solid #e8b6e5">🗑️</button>
+          `
+          list.appendChild(li)
+        })
+      } else {
+        list.innerHTML = "<li>🚫 There are not registered cameras</li>"
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  async function deleteCamera(camera_id) {
+    capa(0)
+    try {
+      const res = await fetch("http://localhost:9000/delete_camera", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ camera_id })
+      })
+      const json = await res.json()
+      capa(1)
+      getCameras()
+    } catch (err) {
+      console.error(err)
+      capa(1)
+    }
+  }
+
+  function startScan(camera_id) {
+    localStorage.setItem("camera_id", camera_id)
+    capa(200)
+    iniciarCamara()
+  }
+
+  // Para listar dispositivos disponibles en capa_2
+  async function loadDevices() {
+    try {
+      console.log("CAMARAS")
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const videoDevices = devices.filter(d => d.kind === "videoinput")
+      const select = document.getElementById("available_devices")
+      select.innerHTML = ""
+      videoDevices.forEach(d => {
+        const opt = document.createElement("option")
+        opt.value = d.deviceId
+        opt.textContent = d.label || "Cámara " + (select.length + 1)
+        select.appendChild(opt)
+      })
+    } catch (err) {
+      console.error("Error detectando dispositivos:", err)
+    }
+  }
+  loadDevices()
+
+  async function createCamera() {
+    capa(0)
+    const user = JSON.parse(localStorage.getItem("user"))
+    const name = document.getElementById("new_camera_name").value
+    const deviceId = document.getElementById("available_devices").value
+    const errorBox = document.getElementById("error_camera")
+
+    if (!name) {
+      errorBox.innerText = "Debe ingresar un nombre"
+      capa(2)
+      return
+    }
+
+    try {
+      const res = await fetch("http://localhost:9000/create_camera", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id_user, camera_name: name })
+      })
+      const json = await res.json()
+      if (json.status === 200) {
+        capa(1)
+        getCameras()
+      } else {
+        errorBox.innerText = json.msg || "Error al crear cámara"
+        capa(2)
+      }
+    } catch (err) {
+      console.error(err)
+      errorBox.innerText = "Error de conexión"
+      capa(2)
+    }
+  }
+
+  // Hook: cuando entramos a capa_1 refrescamos lista
+  document.getElementById("capa_1").addEventListener("click", () => getCameras())
+  // Hook: cuando entramos a capa_2 cargamos dispositivos
+  document.getElementById("capa_2").addEventListener("click", () => loadDevices())
 
 </script>
 </body>
