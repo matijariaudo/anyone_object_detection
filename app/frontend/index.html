@@ -38,17 +38,30 @@
   </div>
 
   <!-- Capa 1: Menú -->
+  <div id="capa_10" class="capa text-center">
+    <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
+    <div class="col-12 col-md-4 offset-md-4">
+    Usuario:
+    <input type="text" class="w-100" value="mati_ariaudo" style="color:#FFF;border:1px solid #fff;background-color: rgb(255, 255, 255,.2);border-radius: 100px;padding:5px;padding-left: 10px"><br>
+    Clave: <input type="password" class="w-100" value="123455" style="color:#FFF;border:1px solid #fff;background-color: rgb(255, 255, 255,.2);border-radius: 100px;padding:5px;padding-left: 10px;"><br>
+    <button class="btn btn-claro mt-3 w-100" onclick="capa(1)" style="background-color: #FFF;color:#a93ca2;">Iniciar sesión</button>
+    </div>
+  </div>
+
+  <!-- Capa 1: Menú -->
   <div id="capa_1" class="capa text-center">
-    <h1>Control APP</h1>
-    <h3>Menú</h3>
-    <button class="btn btn-claro m-2" onclick="capa(100)">Subir Foto</button>
-    <button class="btn btn-claro m-2" onclick="capa(200)">Usar Cámara</button>
+    <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
+    <div class="col-12 col-md-4 offset-md-4">
+    <button class="btn btn-claro m-2" onclick="capa(100)">📷 Upload & Detect</button>
+    <button class="btn btn-claro m-2" onclick="capa(200)">🎥 Real-Time Scan</button>
+    </div>
   </div>
 
   <!-- Capa 100: Subir foto -->
 <div id="capa_100" class="capa text-center">
+  <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
   <div class="col-12 col-md-4 offset-md-4">
-  <h4>Subir imagen</h4>
+  <h4>📷 Upload & Detect</h4>
   <input type="file" id="fileInput" class="form-control mb-3" accept="image/*">
   <button class="btn btn-claro" onclick="procesarImagen()">Upload & Detect</button>
   <button class="btn btn-claro" onclick="capa(1)">Volver</button>
@@ -59,13 +72,14 @@
 </div>
 
   <!-- Capa 200: Cámara -->
-  <div id="capa_200" class="capa">
-    <div class="col-4 offset-md-4">
+  <div id="capa_200" class="capa text-center">
+      <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
+      <div class="col-12 col-md-4 offset-md-4">
       <div class="text-center">
-        <h4>LIVE CAM RECORDING</h4>
-        <button class="btn btn-claro mt-2" onclick="capturar()">Empezar</button>
-        <button class="btn btn-claro mt-2" onclick="finCapturar()">Finalizar</button>
-        <button class="btn btn-claro mt-2" onclick="finCapturar();capa(1)">Volver</button>
+        <h4>🎥 Real-Time Scan</h4>
+        <button class="btn btn-claro mt-2" onclick="capturar()">Scan</button>
+        <button class="btn btn-claro mt-2" onclick="finCapturar()">Stop recording</button>
+        <button class="btn btn-claro mt-2" onclick="finCapturar();capa(1)">Go back</button>
       </div>
       <div class="video-wrap">
         <video id="video" autoplay playsinline></video>
@@ -80,7 +94,7 @@
     document.querySelectorAll('.capa').forEach(c => c.classList.remove('active'))
     document.getElementById('capa_' + i).classList.add('active')
   }
-  setTimeout(() => capa(1), 200)
+  setTimeout(() => capa(10), 200)
 
   const video = document.getElementById('video')
   const overlay = document.getElementById('overlay')
@@ -149,7 +163,7 @@
           px2 = tmp2
 
           ctxOverlay.strokeStyle = "green"
-          ctxOverlay.lineWidth = 2
+          ctxOverlay.lineWidth = 5
           ctxOverlay.strokeRect(px1, py1, px2 - px1, py2 - py1)
           })
         }
