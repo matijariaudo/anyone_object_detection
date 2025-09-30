@@ -56,7 +56,7 @@ async def enqueue_image(file: UploadFile = File(...)):
         if value:
             parsed = json.loads(value.decode()) # <- parsea string a dict
             shutil.rmtree(tmp_dir)              # <- Delete temp path
-            return JSONResponse(content={"status": "success", "result": parsed["output"]})
+            return JSONResponse(content={"status": "success", "result_product": parsed["output_product"], "result_gap": parsed["output_gap"]})
         time.sleep(0.1)
     return {"status": "No results"}
 
