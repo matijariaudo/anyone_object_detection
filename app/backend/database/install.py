@@ -35,6 +35,9 @@ def create_database():
     CREATE TABLE IF NOT EXISTS detections (
         detection_id INTEGER PRIMARY KEY AUTOINCREMENT,
         object_count INTEGER NOT NULL,
+        gap_count INTEGER NOT NULL,
+        object_data TEXT NOT NULL,
+        gap_data TEXT NOT NULL,
         camera_id INTEGER NOT NULL,
         photo_url TEXT NOT NULL,
         detection_status BOOLEAN NOT NULL,

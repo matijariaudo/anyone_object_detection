@@ -139,6 +139,7 @@
       </div>
       <canvas id="canvas" style="display:none;"></canvas>
       <p id="statusBox" style="text-align: center;"></p>
+      <p  style="text-align: center;"><aa id="prodQtyBox" style="text-align: center;"></aa> | <aa id="gapQtyBox" style="text-align: center;"></aa></p>
     </div>
   </div>
 
@@ -184,6 +185,7 @@
     return new Blob([u8arr], { type: mime })
   }
 
+  let lastStatus=""
   async function enviarFrame() {
     // capturamos frame en canvas oculto
     canvas.width = video.videoWidth
@@ -194,17 +196,42 @@
     canvas.toBlob(async (blob) => {
       const formData = new FormData()
       formData.append("file", blob, "frame.jpg")
-
+      formData.append("camera_id", localStorage.getItem("camera_id"))  // acá tu id
       try {
+
         const res = await fetch("http://localhost:9000/predict", { method:"POST", body: formData })
         const json = await res.json()
 
-        // limpiar overlay
-        ctxOverlay.clearRect(0,0,overlay.width, overlay.height)
+
+        // mostrar estado abajo del video
+        const statusBox = document.getElementById("statusBox")
+        const prodQtyBox = document.getElementById("prodQtyBox")
+        const gapQtyBox = document.getElementById("gapQtyBox")
+        if (statusBox) {
+          switch (json.status) {
+            case "success":
+              statusBox.textContent = "Detected changes"
+              // limpiar overlay
+              ctxOverlay.clearRect(0,0,overlay.width, overlay.height)
+              break
+            case "no changes":
+              statusBox.textContent = "No changes"
+              break
+            case "No results":
+              statusBox.textContent = "No success"
+              break
+            case "error":
+              statusBox.textContent = "Error"
+              break
+            default:
+              statusBox.textContent = "Unknown"
+          }
+        }
 
         // pintar boxes solo si status = success
-        if (json.status === "success" && json.result) {
-          json.result.forEach(([x1,y1,x2,y2]) => {
+        if (json.status === "success" && json.result_product) {
+          prodQtyBox.textContent=`There ${json.result_product.length>1?'are':'is'} ${json.result_product.length} product${json.result_product.length>1?'s':''}`
+          json.result_product.forEach(([x1,y1,x2,y2]) => {
           let px1 = x1 * overlay.width
           let px2 = x2 * overlay.width
           const py1 = y1 * overlay.height
@@ -220,32 +247,30 @@
           ctxOverlay.lineWidth = 5
           ctxOverlay.strokeRect(px1, py1, px2 - px1, py2 - py1)
           })
+          gapQtyBox.textContent=`There ${json.result_gap.length>1?'are':'is'} ${json.result_gap.length} Gap${json.result_gap.length>1?'s':''}`
+          json.result_gap.forEach(([x1,y1,x2,y2]) => {
+          let px1 = x1 * overlay.width
+          let px2 = x2 * overlay.width
+          const py1 = y1 * overlay.height
+          const py2 = y2 * overlay.height
+
+          // invertir en X (espejo)
+          const tmp1 = overlay.width - px2
+          const tmp2 = overlay.width - px1
+          px1 = tmp1
+          px2 = tmp2
+
+          ctxOverlay.strokeStyle = "red"
+          ctxOverlay.lineWidth = 5
+          ctxOverlay.strokeRect(px1, py1, px2 - px1, py2 - py1)
+          })
         }
 
-        // mostrar estado abajo del video
-        const statusBox = document.getElementById("statusBox")
-        if (statusBox) {
-          switch (json.status) {
-            case "success":
-              statusBox.textContent = "Cambio"
-              break
-            case "no changes":
-              statusBox.textContent = "Sin cambio"
-              break
-            case "No results":
-              statusBox.textContent = "Sin resultado"
-              break
-            case "error":
-              statusBox.textContent = "Error"
-              break
-            default:
-              statusBox.textContent = "Desconocido"
-          }
-        }
+        
       } catch (err) {
         console.error(err)
       }
-    }, "image/jpeg", 0.99) // 👈 calidad 90%
+    }, "image/jpeg", 0.69) // 👈 calidad 90%
   }
 
   let interval
@@ -276,6 +301,7 @@
         // mandar al backend
         const formData = new FormData()
         formData.append("file", file)
+        formData.append("camera_id", 0)  // acá tu id
         fetch("http://localhost:9000/predict", { method:"POST", body: formData })
           .then(r => r.json())
           .then(json => {
