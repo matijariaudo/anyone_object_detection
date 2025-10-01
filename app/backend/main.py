@@ -1,7 +1,7 @@
 from utils.duplicates_control import image_differs
 from database.install import create_database
 from database.functions import insert_user, check_password, insert_camera, get_cameras_by_user, update_camera_status
-from fastapi import FastAPI, Request, UploadFile, File
+from fastapi import FastAPI, Request, UploadFile, File , Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import redis, json, tempfile, shutil, os, uvicorn , uuid , time
@@ -27,11 +27,15 @@ async def predecir(request: Request):
 
 r = redis.Redis(host="localhost", port=6379, db=0)
 @app.post("/predict")
-async def enqueue_image(file: UploadFile = File(...)):
+async def enqueue_image(file: UploadFile = File(...), camera_id: int = Form(...)):
     # Crear archivo temporal
-    tmp_dir = tempfile.mkdtemp()
+    base_tmp = tempfile.gettempdir()
+    tmp_dir = os.path.join(base_tmp, "images")
+    os.makedirs(tmp_dir, exist_ok=True)
+    print("Existe?", os.path.exists(tmp_dir))   # True si está creada
+    print("Ruta:", tmp_dir)
     ext = file.filename.split(".")[-1]  # extensión (jpg, png, etc.)
-    unique_id = f"{int(time.time())}_{uuid.uuid4().hex}"
+    unique_id = f"{camera_id}_{int(time.time())}"
     file_name=f"{unique_id}.{ext}"
     tmp_path = os.path.join(tmp_dir, file_name)
     print(unique_id,"--",tmp_path)
@@ -109,3 +113,4 @@ async def delete_camera(request: Request):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=9000, reload=True)
+

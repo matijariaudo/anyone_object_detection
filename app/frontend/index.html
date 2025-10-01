@@ -196,8 +196,9 @@
     canvas.toBlob(async (blob) => {
       const formData = new FormData()
       formData.append("file", blob, "frame.jpg")
-
+      formData.append("camera_id", localStorage.getItem("camera_id"))  // acá tu id
       try {
+
         const res = await fetch("http://localhost:9000/predict", { method:"POST", body: formData })
         const json = await res.json()
 
@@ -300,6 +301,7 @@
         // mandar al backend
         const formData = new FormData()
         formData.append("file", file)
+        formData.append("camera_id", 0)  // acá tu id
         fetch("http://localhost:9000/predict", { method:"POST", body: formData })
           .then(r => r.json())
           .then(json => {
