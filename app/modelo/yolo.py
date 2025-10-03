@@ -1,15 +1,19 @@
 from ultralytics import YOLO
-#DEFINIMOS EL MODELO:
-# Cargando YOLOv8 preentrenado (SKU1001k)
-model_product = YOLO("./models/products_model.pt")  # n = nano (rápido), también hay s, m, l, x
-model_gap = YOLO("./models/gap_model.pt")  # n = nano (rápido), también hay s, m, l, x
 
-def predict_product(img_path):
-    results = model_product(img_path, classes=[0,1], conf=0.3) #PROBAR MODELO
-    res = results[0]
-    return res.boxes.xyxyn.tolist()
+# cargás el modelo una vez
+model = YOLO("./models/final_model.pt")
+threshold_product=0.4
+threshold_gap=0.25
+def predict(img_path):
+    results = model(img_path, conf=0.1)[0]  # umbral general bajo
+    product_boxes, gap_boxes = [], []
 
-def predict_gap(img_path):
-    results = model_gap(img_path, classes=[0,1], conf=0.2) #PROBAR MODELO
-    res = results[0]
-    return res.boxes.xyxyn.tolist()
+    for box, cls, conf in zip(results.boxes.xyxyn.tolist(),
+                              results.boxes.cls.tolist(),
+                              results.boxes.conf.tolist()):
+        if int(cls) == 1 and conf >= threshold_product:   # products con conf >= 0.3
+            product_boxes.append(box)
+        elif int(cls) == 0 and conf >= threshold_gap: # gaps con conf >= 0.2
+            gap_boxes.append(box)
+
+    return product_boxes, gap_boxes

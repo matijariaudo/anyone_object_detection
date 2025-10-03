@@ -1,15 +1,13 @@
-from yolo import predict_gap, predict_product
-import redis
-import json
+from yolo import predict
+import redis, json
 
 r = redis.Redis(host="localhost", port=6379, db=0)
 
 while True:
-    task = r.brpop("task_queue")  # espera hasta que haya tarea
-    _, value = task
-    data = json.loads(value.decode())  # convierte de JSON a dict
-    prediction_product = predict_product(data['path'])
-    prediction_gap = predict_gap(data['path'])
-    result = {"output_product": prediction_product , "output_gap": prediction_gap}
-    # Guardás el resultado en Redis
+    _, value = r.brpop("task_queue")
+    data = json.loads(value.decode())
+
+    product_boxes, gap_boxes = predict(data['path'])
+    result = {"output_product": product_boxes, "output_gap": gap_boxes}
+
     r.set(data['id'], json.dumps(result))
