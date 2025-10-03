@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Barra Reloj 5s</title>
+<style>
+    body{
+        background:#000;
+    }
+  #barContainer {
+    width: 300px;
+    height: 30px;
+    border: 1px solid #35ffb5;
+    border-radius:100px;
+    background: none;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  #bar {
+    width: 100%;
+    height: 100%;
+    background: #ffffff5f;
+    text-align: center;
+    line-height: 30px;
+    color: white;
+    font-weight: bold;
+    border-radius:100px;
+  }
+</style>
+</head>
+<body>
+    <div style="background-color: #FFCC00;width: 30px;height: 30px;text-align: center;border-radius:100px;border:2px solid #ff00ee">
+        <img src="https://static.thenounproject.com/png/2334498-200.png" alt="" style="width: 20px;filter:invert(1);margin-top: 4px;">
+    </div>
+<div id="barContainer">
+  <div id="bar">5</div>
+</div>
+
+<button onclick="start()">Start</button>
+<button onclick="stop()">Stop</button>
+<button onclick="finish()">Finish</button>
+<br>
+
+<script>
+  let interval;
+  let startTime;
+  const duration = 5000; // 5 segundos
+
+  function start() {
+    stop();
+    startTime = Date.now();
+    interval = setInterval(updateBar, 50); // refresco cada 50ms
+  }
+
+  function stop() {
+    clearInterval(interval);
+  }
+
+  function finish() {
+    stop();
+    alert("¡Tiempo terminado!");
+  }
+
+  function updateBar() {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, duration - elapsed);
+
+    const percent = (remaining / duration) * 100;
+    const seconds = Math.ceil(remaining / 1000);
+
+    const bar = document.getElementById("bar");
+    bar.style.width = percent + "%";
+    bar.textContent = seconds > 1 ? seconds : '';
+
+    if (remaining <= 0) {
+      finish();
+    }
+  }
+</script>
+
+</body>
+</html>

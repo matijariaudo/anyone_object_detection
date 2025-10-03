@@ -1,6 +1,6 @@
 import sqlite3
 import bcrypt
-import os
+import os,json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "security_system.db")
@@ -72,6 +72,7 @@ def update_camera_status(camera_id, status):
 
 def get_cameras_by_user(user_id):
     conn = get_connection()
+    conn.row_factory = sqlite3.Row   # 👈 cada fila como dict
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -79,7 +80,7 @@ def get_cameras_by_user(user_id):
         FROM cameras
         WHERE user_id = ? AND camera_status=1
     """, (user_id,))
-    rows = cursor.fetchall()
+    rows = [dict(row) for row in cursor.fetchall()]  # 👈 lista de dicts
     conn.close()
 
     return rows
@@ -88,14 +89,100 @@ def get_cameras_by_user(user_id):
 # ========================
 # Detections
 # ========================
-def insert_detection(camera_id, object_count, photo_url, status=True):
+def insert_detection(camera_id, file_name, objects, gaps, status=True):
+    """
+    Inserta una detección en la BD.
+    - camera_id: id de la cámara
+    - file_name: nombre de archivo de la imagen (ej. '12_1696250098.jpg')
+    - objects: lista o texto con coordenadas de objetos detectados
+    - gaps: lista o texto con coordenadas de gaps detectados
+    """
+    try:
+        obj_list = json.loads(objects) if objects else []
+    except:
+        obj_list = []
+    try:
+        gap_list = json.loads(gaps) if gaps else []
+    except:
+        gap_list = []
+        
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO detections (object_count, camera_id, photo_url, detection_status)
-        VALUES (?, ?, ?, ?)
-    """, (object_count, camera_id, photo_url, status))
+        INSERT INTO detections (camera_id, object_count, gap_count, object_data, gap_data, photo_url, detection_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        camera_id,
+        len(obj_list) if obj_list else 0,
+        len(gap_list) if gaps else 0,
+        json.dumps(obj_list),
+        json.dumps(gap_list),
+        file_name,
+        status
+    ))
+    print(camera_id,
+        len(obj_list) if obj_list else 0,
+        len(gap_list) if gaps else 0,
+        json.dumps(obj_list),
+        json.dumps(gap_list),
+        file_name,
+        status)
+    conn.commit()
+    conn.close()
+# ========================
+# Detections
+# ========================
+
+def get_detections(camera_id=None, limit=10):
+    """
+    Obtiene las detecciones como lista de dicts.
+    Incluye la variación de gaps respecto al registro anterior.
+    """
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row  # 👈 hace que fetchall devuelva filas tipo dict
+    cursor = conn.cursor()
+
+    if camera_id:
+        cursor.execute("""
+            SELECT detection_id, camera_id, object_count, gap_count,
+                   object_data, gap_data, photo_url, detection_status,
+                   (gap_count - LAG(gap_count) OVER (
+                        PARTITION BY camera_id ORDER BY detection_id
+                   )) AS gap_variation
+            FROM detections
+            WHERE camera_id = ? AND detection_status=1
+            ORDER BY detection_id DESC
+            LIMIT ?
+        """, (camera_id, limit))
+    else:
+        cursor.execute("""
+            SELECT detection_id, camera_id, object_count, gap_count,
+                   object_data, gap_data, photo_url, detection_status,
+                   (gap_count - LAG(gap_count) OVER (
+                        PARTITION BY camera_id ORDER BY detection_id
+                   )) AS gap_variation
+            FROM detections
+            WHERE detection_status=1
+            ORDER BY camera_id, detection_id DESC
+            LIMIT ?
+        """, (limit,))
+
+    rows = [dict(row) for row in cursor.fetchall()]  # 👈 transforma cada fila en dict
+    conn.close()
+    return rows
+
+
+def delete_detection(detection_id):
+    """
+    Marca una detección como eliminada (detection_status=0).
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE detections SET detection_status = 0 WHERE detection_id = ?
+    """, (detection_id,))
 
     conn.commit()
     conn.close()

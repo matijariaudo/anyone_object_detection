@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gap detection</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     body{
         background: linear-gradient(169deg,rgba(42, 123, 155, 1) 0%, rgba(152, 87, 199, 1) 38%, rgba(237, 83, 204, 1) 100%);
@@ -21,9 +22,13 @@
         border: 1px solid #FFF;
         background-color: rgba(255,255,255,.4);
     }
+    .btn-oscuro{
+      background:#0000007f;
+      color:#FFF
+    }
     .capa { display: none; }
     .capa.active { display: block; }
-    .btn{ border-radius: 100px; }
+    .btn{ border-radius: 10px; }
     .video-wrap { position: relative; display:inline-block;margin-top: 20px; }
     #video { width: 100%; border: 2px solid #FFF; border-radius: 10px; transform:scaleX(-1);}
     #overlay { position:absolute; top:0; left:0; }
@@ -32,6 +37,55 @@
     }
     input::placeholder{
       color:#f1f1f1
+    }
+    .custom-table {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .custom-table th {
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .custom-table td {
+      font-weight: 100;
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+
+    button.btn-sm {
+      font-size: 0.85rem;
+      margin-right: 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      transition: 0.2s;
+    }
+
+    button.btn-sm:hover {
+      background: #ffeea8 !important;
+      color: #000 !important;
+    }
+    #barContainer {
+      width: 100%;
+      height:15px;
+      padding:0px;
+      border: 1px solid #FFCC00;
+      border-radius:100px;
+      background: none;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    #bar {
+      width: 100%;
+      height: 100%;
+      background: #0000005f;
+      text-align: center;
+      line-height: 12px;
+      color: white;
+      font-weight: 100;
+      border-radius:100px;
     }
   </style>
 </head>
@@ -86,12 +140,24 @@
   <!-- Capa 1: Lista de cámaras -->
   <div id="capa_1" class="capa text-center">
     <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
-    <button class="btn btn-claro mt-2" onclick="capa(2)" style="background-color: #FFF;color:#a93ca2;margin-bottom: 20px;">🎥 Add new camera</button>
-    <button class="btn btn-claro mt-2" onclick="capa(100)" style="background-color: #FFF;color:#a93ca2;margin-bottom: 20px;">📷 Upload & Detect</button>
-    <button class="btn btn-claro mt-2" onclick="localStorage.removeItem('user');capa(10)" style="background-color:#FFF;color:#a93ca2;margin-bottom:20px;">🔚 LogOut</button>
-    <div class="col-12 col-md-4 offset-md-4">
-      <ul id="camera_list" class="list-unstyled mt-3"></ul>
+    <button class="btn btn-oscuro mt-2" onclick="capa(2)" >🎥 Add new camera</button>
+    <button class="btn btn-oscuro mt-2" onclick="capa(100)" >📷 Upload & Detect</button>
+    <button class="btn btn-oscuro mt-2" onclick="localStorage.removeItem('user');capa(10)">🔚 LogOut</button>
+    <div class="col-12 col-md-8 offset-md-2 mt-2">
+      <table class="table table-striped table-dark custom-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Camera ID</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="camera_list">
+          <!-- acá se agregan las filas -->
+        </tbody>
+      </table>
     </div>
+    
   </div>
 
   <!-- Capa 2: Crear cámara -->
@@ -127,22 +193,63 @@
   <div id="capa_200" class="capa text-center">
       <h1>Vision<b style="color: #FFCC00;">Gap</b></h1>
       <div class="col-12 col-md-4 offset-md-4">
-      <div class="text-center">
-        <h4>🎥 Real-Time Scan</h4>
-        <button class="btn btn-claro mt-2" onclick="capturar()">Scan</button>
-        <button class="btn btn-claro mt-2" onclick="finCapturar()">Stop recording</button>
-        <button class="btn btn-claro mt-2" onclick="finCapturar();capa(1)">Go back</button>
+        <div class="text-center">
+          <button class="btn btn-claro mt-2" onclick="capturar_save()">Scan & Save</button>
+          <button class="btn btn-claro mt-2" onclick="capturar()">Scan</button>
+          <button class="btn btn-claro mt-2" onclick="finCapturar();capa(1)">Go back</button>
+        </div>
       </div>
-      <div class="video-wrap">
-        <video id="video" autoplay playsinline></video>
-        <canvas id="overlay" style="border:3px solid #FFF"></canvas>
+      <div class="row">
+      <div class="col-12 col-md-4">
+        <p id="camera_status"></p>
+        <div class="video-wrap" style="width: 100%;">
+          <video id="video" autoplay playsinline></video>
+          <canvas id="overlay" style="border:3px solid #FFF"></canvas>
+          <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+        <br>
+        <div id="barContainer">
+          <div id="bar">-</div>
+        </div>
+
+        <p id="statusBox" style="text-align: center;font-size:.8em"></p>
+        <p  style="text-align: center;;font-size:.8em"><aa id="prodQtyBox" style="text-align: center;"></aa> <aa id="gapQtyBox" style="text-align: center;"></aa></p>
       </div>
-      <canvas id="canvas" style="display:none;"></canvas>
-      <p id="statusBox" style="text-align: center;"></p>
-      <p  style="text-align: center;"><aa id="prodQtyBox" style="text-align: center;"></aa> | <aa id="gapQtyBox" style="text-align: center;"></aa></p>
+      <div class="col-md-8" style="padding: 30px;">
+        <table class="table table-striped table-dark custom-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Products</th>
+              <th>GAPs</th>
+              <th>Var GAPs</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="detection_list">
+            <!-- acá se agregan las filas -->
+          </tbody>
+        </table>
+      </div>
+      </div>
+  </div>
+  <!-- Modal detección -->
+  <div class="modal fade" id="detectionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content" style="background:#111;color:#fff;">
+        <div class="modal-header" style="border:0px">
+          <h5 class="modal-title">Detection previewss</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <div style="position:relative; display:inline-block;">
+            <img id="detectionImage" src="" style="max-width:100%; border-radius:10px;">
+            <canvas id="detectionCanvas" style="position:absolute; top:0; left:0;"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
 <script>
   function capa(i) {
     document.querySelectorAll('.capa').forEach(c => c.classList.remove('active'))
@@ -170,6 +277,7 @@
         overlay.style.width = (video.clientWidth + 8) + "px"
         overlay.style.height = (video.clientHeight + 4) + "px"
       }
+      capa(200)
     } catch (err) {
       alert("No se pudo acceder a la cámara: " + err)
     }
@@ -185,7 +293,8 @@
     return new Blob([u8arr], { type: mime })
   }
 
-  let lastStatus=""
+  let prediction_data;
+
   async function enviarFrame() {
     // capturamos frame en canvas oculto
     canvas.width = video.videoWidth
@@ -201,8 +310,6 @@
 
         const res = await fetch("http://localhost:9000/predict", { method:"POST", body: formData })
         const json = await res.json()
-
-
         // mostrar estado abajo del video
         const statusBox = document.getElementById("statusBox")
         const prodQtyBox = document.getElementById("prodQtyBox")
@@ -213,18 +320,26 @@
               statusBox.textContent = "Detected changes"
               // limpiar overlay
               ctxOverlay.clearRect(0,0,overlay.width, overlay.height)
+              prediction_data = json.result_product;
+              prediction_gaps = json.result_gap;
+              prediction_file = json.file_name; // 👈 asegurate que /predict devuelva file_name
+              zero()
               break
             case "no changes":
               statusBox.textContent = "No changes"
+              if(camera_status=='stop'){start()}
               break
             case "No results":
-              statusBox.textContent = "No success"
+              statusBox.textContent = "No success";
+              zero()
               break
             case "error":
               statusBox.textContent = "Error"
+              zero()
               break
             default:
               statusBox.textContent = "Unknown"
+              zero()
           }
         }
 
@@ -273,8 +388,9 @@
     }, "image/jpeg", 0.69) // 👈 calidad 90%
   }
 
-  let interval
-  function capturar(){ interval = setInterval(enviarFrame, 1000) }
+  let interval; let save=false;
+  function capturar(){save=false; interval = setInterval(enviarFrame, 1000) }
+  function capturar_save(){save=true; interval = setInterval(enviarFrame, 1000) }
   function finCapturar(){ clearInterval(interval) }
 
   //document.querySelector('button[onclick="capa(200)"]').addEventListener('click', iniciarCamara)
@@ -429,26 +545,25 @@
       })
       const json = await res.json()
 
-      const list = document.getElementById("camera_list")
-      list.innerHTML = ""
+      const tbody = document.getElementById("camera_list")
+      tbody.innerHTML = ""
 
       if (json.status === 200 && json.cameras.length > 0) {
         json.cameras.forEach(c => {
-          const li = document.createElement("li")
-          li.className = "p-3 my-2"
-          li.style.background = "rgba(255,255,255,.2)"
-          li.style.borderRadius = "10px"
-          li.style.color = "#FFF"
-          li.innerHTML = `
-            <b> ${c[1]} || Camera Id:${c[0]}</b><br>
-            <button class="btn btn-claro btn-sm mt-2" onclick="startScan(${c[0]})" style="background:#FFF;border:2px solid #e8b6e5"">💾</button>
-            <button class="btn btn-claro btn-sm mt-2" onclick="startScan(${c[0]})" style="background:#FFF;border:2px solid #e8b6e5"">🎥</button>
-            <button class="btn btn-claro btn-sm mt-2" onclick="deleteCamera(${c[0]})" style="background:#FFF;margin-left:30px;border:2px solid #e8b6e5">🗑️</button>
-          `
-          list.appendChild(li)
+          const tr = document.createElement("tr")
+          tr.innerHTML = `
+            <td><b>${c.camera_name}</b></td>
+            <td>${c.camera_id}</td>
+            <td>
+              <button class="btn btn-sm" onclick="startScan(${c.camera_id})" style="background:#ffcc00">🎥</button>
+              <button class="btn btn-sm" onclick="startScan(${c.camera_id})">💾</button>
+              <button class="btn btn-sm" onclick="deleteCamera(${c.camera_id})">🗑️</button>
+            </td>
+          `;
+          tbody.appendChild(tr)
         })
       } else {
-        list.innerHTML = "<li>🚫 There are not registered cameras</li>"
+        tbody.innerHTML = `<tr><td colspan="3">🚫 There are not registered cameras</td></tr>`
       }
     } catch (err) {
       console.error(err)
@@ -474,7 +589,8 @@
 
   function startScan(camera_id) {
     localStorage.setItem("camera_id", camera_id)
-    capa(200)
+    getDetections()
+    capa(0)
     iniciarCamara()
   }
 
@@ -538,5 +654,218 @@
   document.getElementById("capa_2").addEventListener("click", () => loadDevices())
 
 </script>
+<script>
+  let interval_time;
+  let startTime;
+  let camera_status='stop';
+  const statusBox = document.getElementById("camera_status")
+  let captures=0;
+  const duration = 10000; // 5 segundos
+
+  function zero() {
+    stop(); // corta cualquier interval previo
+    const bar = document.getElementById("bar");
+    bar.style.width = "100%"; // barra llena
+    bar.textContent = "Movement detected";    // texto inicial
+    camera_status='stop';
+    statusBox.innerText=camera_status
+  }
+
+  function start() {
+    stop();
+    startTime = Date.now();
+    interval_time = setInterval(updateBar, 50); // refresco cada 50ms
+    camera_status='countdown';
+    statusBox.innerText=camera_status
+  }
+
+  function stop() {
+    console.log(prediction_file)
+    clearInterval(interval_time);
+  }
+
+  
+  function finish() {
+    stop();
+    camera_status='analizing';
+    statusBox.innerText=camera_status
+    analizing()
+    console.log("FIn")
+  }
+
+  function analizing(){
+     setTimeout(()=>{
+      if(prediction_data && prediction_file) {
+        if(save){
+            if(last_detection.gap_count!=prediction_gaps.length){
+              save_prediction()
+            }else{
+              console.log("Son iguales")
+            }
+        }
+      }
+     },2000)
+  }
+
+  async function save_prediction(){
+    const camera_id = localStorage.getItem("camera_id");
+    try {
+      const res = await fetch("http://localhost:9000/insert_detection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          camera_id: parseInt(camera_id),
+          file_name: prediction_file,
+          objects: prediction_data,
+          gaps: prediction_gaps
+        })
+      });
+      const json = await res.json();
+      console.log("💾 Saved detection:", json);
+      // refrescar tabla de detecciones
+      getDetections();
+    } catch (err) {
+      console.error("Error saving detection:", err);
+    }
+  }
+
+  function updateBar() {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, duration - elapsed);
+
+    const percent = (remaining / duration) * 100;
+    const seconds = Math.ceil(remaining / 1000);
+
+    const bar = document.getElementById("bar");
+    bar.style.width = percent + "%";
+    bar.textContent = seconds > 1 ? seconds : '';
+
+    if (remaining <= 0) {
+      finish();
+    }
+  }
+
+  let last_detection;
+  async function getDetections() {
+    const camera_id = localStorage.getItem("camera_id");
+    if (!camera_id) return;
+
+    try {
+      const res = await fetch("http://localhost:9000/get_detections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ camera_id: parseInt(camera_id) })
+      });
+      const json = await res.json();
+      console.log(json)
+      const tbody = document.getElementById("detection_list");
+      tbody.innerHTML = "";
+      last_detection=null
+      if (json.status === 200 && json.detections.length > 0) {
+        json.detections.forEach(det => {
+          if(!last_detection){last_detection={object_count:det.object_count,gap_count:det.gap_count}}
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>
+              <small>${formatFromFilename(det.photo_url)}</small>
+            </td>
+            <td>
+              <b>${det.object_count}</b>
+            </td>
+            <td>
+              ${det.gap_count}
+            </td>
+            <td>
+              <b>${det.gap_variation || '-'}</b>
+            </td>            
+            <td>
+              <button class="btn btn-sm" onclick="showImage('${det.photo_url}','${det.object_data}','${det.gap_data}')">📷</button>
+              <button class="btn btn-sm" onclick="removeDetection(${det.detection_id})">🗑️</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        tbody.innerHTML = `<tr><td colspan="5">🚫 No detections for this camera</td></tr>`;
+      }
+    } catch (err) {
+      console.error("Error fetching detections:", err);
+    }
+  }
+
+  async function removeDetection(detection_id) {
+    if (!confirm("Are you sure you want to delete this detection?")) return;
+
+    try {
+      const res = await fetch("http://localhost:9000/delete_detection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ detection_id })
+      });
+      const json = await res.json();
+      if (json.status === 200) {
+        console.log("✅ Detection deleted:", detection_id);
+        getDetections(); // refrescar la tabla
+      } else {
+        alert("Error deleting: " + json.msg);
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  }
+  function formatFromFilename(filename) {
+    const ts = parseInt(filename.split("_")[1].split(".")[0]); // saca el timestamp
+    const d = new Date(ts * 1000); // segundos → ms
+    const pad = n => n.toString().padStart(2, "0");
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear().toString().slice(-2)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  // 👇 función auxiliar para mostrar la imagen (ajústala como quieras)
+  async function showImage(fileName, objects, gaps) {
+    // abrir modal Bootstrap
+    const modal = new bootstrap.Modal(document.getElementById('detectionModal'));
+    modal.show();
+
+    const imgEl = document.getElementById("detectionImage");
+    const canvas = document.getElementById("detectionCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // limpiar canvas previo
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // cargar imagen
+    imgEl.onload = () => {
+      canvas.width = imgEl.width;
+      canvas.height = imgEl.height;
+
+      // dibujar products (verde)
+      try {
+        const objs = JSON.parse(objects || "[]");
+        objs.forEach(([x1,y1,x2,y2]) => {
+          ctx.strokeStyle = "lime";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(x1*canvas.width, y1*canvas.height,
+                        (x2-x1)*canvas.width, (y2-y1)*canvas.height);
+        });
+      } catch(e){ console.error("Objects parse error", e); }
+
+      // dibujar gaps (rojo)
+      try {
+        const gps = JSON.parse(gaps || "[]");
+        gps.forEach(([x1,y1,x2,y2]) => {
+          ctx.strokeStyle = "red";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(x1*canvas.width, y1*canvas.height,
+                        (x2-x1)*canvas.width, (y2-y1)*canvas.height);
+        });
+      } catch(e){ console.error("Gaps parse error", e); }
+    };
+
+    // set src (esto dispara el onload)
+    imgEl.src = `http://localhost:9000/static/imagenes/${fileName}`;
+  }
+
+</script>
 </body>
+
 </html>
