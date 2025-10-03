@@ -17,3 +17,7 @@ ENV/
 # IDEs
 .vscode/
 .idea/
+
+# DB
+*.db
+*.sqlite3
