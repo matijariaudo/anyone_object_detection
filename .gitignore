@@ -20,6 +20,4 @@ ENV/
 
 # Ignorar todo el contenido de frontend/imagenes
 /frontend/imagenes/*
-
-# Pero no ignorar el archivo .gitkeep
 !/frontend/imagenes/.gitkeep
