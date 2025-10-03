@@ -19,5 +19,5 @@ ENV/
 .idea/
 
 # Ignorar todo el contenido de frontend/imagenes
-/frontend/imagenes/*
-!/frontend/imagenes/.gitkeep
+/app/frontend/imagenes/*
+!/app/frontend/imagenes/.gitkeep
