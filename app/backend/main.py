@@ -1,10 +1,12 @@
+from utils.delete_temp_file import cleanup_old_files
 from utils.duplicates_control import image_differs
 from database.install import create_database
-from database.functions import insert_user, check_password, insert_camera, get_cameras_by_user, update_camera_status
+from database.functions import insert_user, check_password, insert_camera, get_cameras_by_user, update_camera_status, get_detections , insert_detection,delete_detection
 from fastapi import FastAPI, Request, UploadFile, File , Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import redis, json, tempfile, shutil, os, uvicorn , uuid , time
+
 
 create_database()
 app = FastAPI()
@@ -26,6 +28,7 @@ async def predecir(request: Request):
     return JSONResponse(content={"status": 200, "prediction": True})
 
 r = redis.Redis(host="localhost", port=6379, db=0)
+r.delete("task_queue")
 @app.post("/predict")
 async def enqueue_image(file: UploadFile = File(...), camera_id: int = Form(...)):
     # Crear archivo temporal
@@ -43,8 +46,8 @@ async def enqueue_image(file: UploadFile = File(...), camera_id: int = Form(...)
         shutil.copyfileobj(file.file, buffer)
 
     # 👇 chequeo antes de poner en cola si ha cambiado
-    if not image_differs(tmp_path, threshold=5.0):
-        shutil.rmtree(tmp_dir)
+    if not image_differs(tmp_path,camera_id, threshold=5.0):
+        cleanup_old_files(camera_id)
         return {"status": "no changes"}
     
     #Preparo cola pre - servicio
@@ -59,8 +62,8 @@ async def enqueue_image(file: UploadFile = File(...), camera_id: int = Form(...)
         value = r.getdel(file_name)
         if value:
             parsed = json.loads(value.decode()) # <- parsea string a dict
-            shutil.rmtree(tmp_dir)              # <- Delete temp path
-            return JSONResponse(content={"status": "success", "result_product": parsed["output_product"], "result_gap": parsed["output_gap"]})
+            cleanup_old_files(camera_id)        # <- Delete temp path
+            return JSONResponse(content={"status": "success", "result_product": parsed["output_product"], "result_gap": parsed["output_gap"],"file_name":file_name})
         time.sleep(0.1)
     return {"status": "No results"}
 
@@ -108,6 +111,52 @@ async def delete_camera(request: Request):
     try:
         update_camera_status(data["camera_id"], False)
         return {"status": 200, "msg": "Camera disabled successfully"}
+    except Exception as e:
+        return {"status": "error", "msg": str(e)}
+
+@app.post("/insert_detection")
+async def insert_detection_endpoint(request: Request):
+    data = await request.json()
+    try:
+        camera_id = data["camera_id"]
+        file_name = data["file_name"]
+        objects = json.dumps(data.get("objects", []))  # guardamos como texto
+        gaps = json.dumps(data.get("gaps", []))          # idem
+
+        # copiar archivo a carpeta fija
+        base_tmp = tempfile.gettempdir()
+        tmp_path = os.path.join(base_tmp, "images", file_name)
+
+        images_dir = os.path.join(os.path.dirname(__file__), "..", "frontend","imagenes")
+        os.makedirs(images_dir, exist_ok=True)
+        final_path = os.path.join(images_dir, file_name)
+
+        if os.path.exists(tmp_path):
+            shutil.copy2(tmp_path, final_path)
+
+        # guardar en BD
+        insert_detection(camera_id, file_name, objects, gaps)
+
+        return {"status": 200, "msg": "Detection saved successfully", "file": file_name}
+    except Exception as e:
+        return {"status": "error", "msg": str(e)}
+    
+@app.post("/get_detections")
+async def get_detections_endpoint(request: Request):
+    data = await request.json()
+    try:
+        camera_id = data.get("camera_id")
+        detections = get_detections(camera_id)
+        return {"status": 200, "detections": detections}
+    except Exception as e:
+        return {"status": "error", "msg": str(e)}
+    
+@app.post("/delete_detection")
+async def delete_detection_endpoint(request: Request):
+    data = await request.json()
+    try:
+        delete_detection(data["detection_id"])
+        return {"status": 200, "msg": "Detection deleted successfully"}
     except Exception as e:
         return {"status": "error", "msg": str(e)}
 
