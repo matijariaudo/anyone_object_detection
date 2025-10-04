@@ -1,9 +1,13 @@
 import json
+import os
 
 import redis
 from yolo import predict
 
-r = redis.Redis(host="redis", port=6379, db=0)
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
+r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
 while True:
     _, value = r.brpop("task_queue")

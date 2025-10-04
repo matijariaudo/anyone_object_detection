@@ -30,7 +30,10 @@ app = FastAPI()
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
-r = redis.Redis(host="redis", port=6379, db=0)
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
+r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 r.delete("task_queue")
 
 
@@ -100,21 +103,22 @@ async def predecir(request: Request):
 #         time.sleep(0.1)
 #     return {"status": "No results"}
 
+# Shared directory: docker -> "/shared/images", local -> system temp
+DEFAULT_DIR = os.path.join(tempfile.gettempdir(), "images")
+SHARED_DIR = os.getenv("SHARED_DIR", DEFAULT_DIR)
+os.makedirs(SHARED_DIR, exist_ok=True)
+
 
 @app.post("/predict")
 async def enqueue_image(file: UploadFile = File(...), camera_id: int = Form(...)):
-    # Crear directorio compartido
-    shared_dir = "/shared/images"
-    os.makedirs(shared_dir, exist_ok=True)
-
-    # Asegurar nombre de archivo
+    # Nombre único
     original_name = file.filename or "upload.jpg"
     ext = original_name.split(".")[-1] if "." in original_name else "jpg"
-
-    # Generar nombre único
     unique_id = f"{camera_id}_{int(time.time())}"
     file_name = f"{unique_id}.{ext}"
-    tmp_path = os.path.join(shared_dir, file_name)
+
+    # Ruta completa
+    tmp_path = os.path.join(SHARED_DIR, file_name)
 
     # Guardar archivo subido
     with open(tmp_path, "wb") as buffer:
@@ -127,7 +131,7 @@ async def enqueue_image(file: UploadFile = File(...), camera_id: int = Form(...)
 
     # Preparo cola pre - servicio
     task = {"id": file_name, "path": tmp_path}
-    r.lpush("task_queue", json.dumps(task))  # Pongo en redis
+    r.lpush("task_queue", json.dumps(task))
 
     # Espero en cola post - servicio
     start = time.time()

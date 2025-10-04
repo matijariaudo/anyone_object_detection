@@ -6,6 +6,10 @@ services:
 
   backend:
     build: ./app/backend
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SHARED_DIR=/shared/images
     ports:
       - "9000:9000"
     volumes:
@@ -17,6 +21,10 @@ services:
 
   modelo:
     build: ./app/modelo
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SHARED_DIR=/shared/images
     volumes:
       - ./app/modelo:/app # mount code for dev
       - shared-data:/shared
