@@ -1,0 +1,26 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./app/backend
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./app/backend:/app # mount code for live reload
+      - ./app/frontend:/frontend # mount frontend
+      - shared-data:/shared
+    depends_on:
+      - redis
+
+  modelo:
+    build: ./app/modelo
+    volumes:
+      - ./app/modelo:/app # mount code for dev
+      - shared-data:/shared
+    depends_on:
+      - redis
+volumes:
+  shared-data:
