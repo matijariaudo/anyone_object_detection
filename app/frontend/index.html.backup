@@ -498,10 +498,6 @@
     const password = document.getElementById("new_password").value
     const repeat = document.getElementById("repeat_password").value
     const errorBox = document.getElementById("error_create")
-    
-    console.log("📝 Form values:", { email, password, repeat });
-    
-
     if (email.length<5) {
       errorBox.innerText = "You must enter a valid email"
       capa(11)
@@ -517,10 +513,6 @@
       capa(11)
       return
     }
-
-    const payload = { email, password, name: email };
-    console.log("📤 Sending payload:", payload);
-    console.log("📤 JSON string:", JSON.stringify(payload));
 
     try {
       const res = await fetch("http://localhost:8000/create_account", {

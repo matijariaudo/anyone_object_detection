@@ -1,0 +1,102 @@
+services:
+  # ==========================================
+  # Redis Service
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: app-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ==========================================
+  # Backend Service (FastAPI - Python 3.12)
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: app-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=sqlite:///database/app.db
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./backend/database:/app/database
+    networks:
+      - app-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ==========================================
+  # Frontend Service (Nginx)
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: app-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+      - modelo
+    networks:
+      - app-network
+
+  # ==========================================
+  # Modelo Service (YOLO Worker - Python 3.12)
+  # ==========================================
+  modelo:
+    build:
+      context: ./modelo
+      dockerfile: Dockerfile
+    container_name: app-modelo
+    restart: unless-stopped
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./modelo:/app
+      - ./modelo/models:/app/models
+    networks:
+      - app-network
+    command: python main.py
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  redis-data:
+    driver: local
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  app-network:
+    driver: bridge

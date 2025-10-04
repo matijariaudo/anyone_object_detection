@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Testing
+.pytest_cache/
+test.py
+*.test.py
+
+# Environment
+.env
+.env.local
+
+# Models (large files - don't copy during build)
+models/*.pt
+models/*.pth
+models/*.onnx
+models/*.weights
+*.h5
+*.pkl
+
+# Logs
+*.log
+logs/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# OS
+Thumbs.db
+
+# Data
+data/
+dataset/
+*.mp4
+*.avi
